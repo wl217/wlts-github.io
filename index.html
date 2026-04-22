@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Aurora · 个人档案</title>
+    <style>
+        /* ---------- RESET & 基础变量 ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0a0c12;
+            --bg-card: rgba(20, 24, 35, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-edge: rgba(255, 255, 255, 0.03);
+            --accent-primary: #5b8cff;
+            --accent-glow: rgba(91, 140, 255, 0.4);
+            --accent-secondary: #ff6b9d;
+            --text-light: #f0f3fa;
+            --text-muted: #9aa2b9;
+            --text-dim: #6b728f;
+            --shadow-sm: 0 8px 20px rgba(0, 0, 0, 0.3);
+            --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.2);
+            --transition-smooth: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            --border-radius-card: 28px;
+            --border-radius-element: 18px;
+        }
+
+        /* 深色模式偏好自动适配 (基础已经深色, 但保留light降级) */
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-dark: #f4f7fe;
+                --bg-card: rgba(255, 255, 255, 0.75);
+                --glass-border: rgba(0, 0, 0, 0.05);
+                --glass-edge: rgba(0, 0, 0, 0.02);
+                --text-light: #1a1e2c;
+                --text-muted: #4a4f6e;
+                --text-dim: #7a7f9c;
+            }
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            font-family: system-ui, -apple-system, 'Segoe UI', 'Inter', 'SF Pro Text', sans-serif;
+            color: var(--text-light);
+            line-height: 1.55;
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+
+        /* 动态渐变背景 + 噪点纹理 (微光玻璃拟态底层) */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 10% 20%, rgba(91, 140, 255, 0.12), transparent 60%),
+                        radial-gradient(circle at 90% 70%, rgba(255, 107, 157, 0.12), transparent 70%);
+            pointer-events: none;
+            z-index: -2;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.02);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 10px;
+        }
+
+        /* 固定导航栏 + 毛玻璃 */
+        .navbar {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: auto;
+            max-width: 90vw;
+            background: rgba(10, 12, 18, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 60px;
+            padding: 10px 24px;
+            z-index: 1000;
+            transition: var(--transition-smooth);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .navbar ul {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .navbar a {
+            text-decoration: none;
+            color: var(--text-light);
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: 0.2s;
+            letter-spacing: 0.3px;
+            padding: 4px 0;
+            border-bottom: 2px solid transparent;
+        }
+
+        .navbar a:hover {
+            color: var(--accent-primary);
+            border-bottom-color: var(--accent-primary);
+        }
+
+        /* 主容器 + 响应式留白 */
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 110px 28px 80px;
+        }
+
+        /* 通用卡片玻璃拟态 (backdrop-filter + 微光描边) */
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius-card);
+            box-shadow: var(--shadow-glass);
+            transition: var(--transition-smooth);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(91, 140, 255, 0.3);
+            box-shadow: 0 20px 36px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(91, 140, 255, 0.15);
+            transform: translateY(-3px);
+        }
+
+        /* HERO 区域 - 动态浮动动画 */
+        .hero {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-bottom: 70px;
+            padding: 40px 40px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hero-content {
+            flex: 1.4;
+            min-width: 240px;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(91, 140, 255, 0.2);
+            backdrop-filter: blur(4px);
+            border-radius: 40px;
+            padding: 6px 16px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--accent-primary);
+            margin-bottom: 1.2rem;
+            border: 0.5px solid rgba(91, 140, 255, 0.4);
+            letter-spacing: 0.5px;
+        }
+
+        .hero h1 {
+            font-size: 3.6rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, var(--accent-primary), var(--accent-secondary));
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            line-height: 1.2;
+            margin-bottom: 0.75rem;
+        }
+
+        .hero-tagline {
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            border-left: 3px solid var(--accent-primary);
+            padding-left: 1rem;
+        }
+
+        .hero-desc {
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+            max-width: 90%;
+        }
+
+        .contact-icons {
+            display: flex;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+        .contact-icon {
+            background: rgba(255,255,255,0.03);
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            transition: 0.2s;
+            text-decoration: none;
+            color: var(--text-muted);
+            border: 1px solid var(--glass-border);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .contact-icon:hover {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+            transform: scale(1.02);
+        }
+
+        .hero-avatar {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .avatar-glow {
+            width: 180px;
+            height: 180px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: float 5s ease-in-out infinite;
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+        .avatar-glow span {
+            font-size: 5rem;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* 网格布局 (Bento 灵感 + 响应式) */
+        .grid-bento {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 28px;
+            margin: 60px 0 40px;
+        }
+
+        /* 教育/工作等细节卡片 */
+        .info-card {
+            padding: 28px 26px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .info-card h3 {
+            font-size: 1.7rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            letter-spacing: -0.3px;
+            background: linear-gradient(120deg, var(--text-light), var(--accent-primary));
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .timeline-item {
+            margin-bottom: 1.4rem;
+            border-left: 2px solid var(--accent-primary);
+            padding-left: 1rem;
+        }
+        .timeline-year {
+            font-weight: 700;
+            color: var(--accent-primary);
+            font-size: 0.85rem;
+        }
+        .timeline-title {
+            font-weight: 600;
+            margin: 0.25rem 0 0.3rem;
+        }
+        .interest-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .interest-tag {
+            background: rgba(91, 140, 255, 0.12);
+            border-radius: 40px;
+            padding: 8px 18px;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            border: 0.5px solid rgba(91, 140, 255, 0.3);
+        }
+        .interest-tag:hover {
+            background: rgba(91, 140, 255, 0.3);
+            transform: scale(1.02);
+        }
+
+        /* 工作经验区域 */
+        .exp-card {
+            padding: 28px 26px;
+        }
+        .exp-item {
+            margin-bottom: 1.8rem;
+        }
+        .exp-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--accent-primary);
+        }
+        .exp-desc {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        /* 自我介绍 酷炫滚动动画 (纯css + 视口动画) */
+        .bio-section {
+            margin: 60px 0 40px;
+            padding: 40px 40px;
+            text-align: center;
+        }
+        .bio-text {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            color: var(--text-muted);
+            line-height: 1.7;
+            font-style: italic;
+        }
+        .signature {
+            margin-top: 28px;
+            font-family: monospace;
+            color: var(--accent-primary);
+            letter-spacing: 1px;
+        }
+
+        /* footer */
+        .footer {
+            text-align: center;
+            padding: 36px 20px 24px;
+            margin-top: 50px;
+            border-top: 1px solid var(--glass-border);
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        /* 交互动画：滚动出现 (Intersection Observer 配合CSS) */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(32px);
+            transition: opacity 0.9s cubic-bezier(0.2, 0.9, 0.4, 1.1), transform 0.7s ease;
+        }
+        .scroll-reveal.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 响应式细节 */
+        @media (max-width: 780px) {
+            .container {
+                padding: 100px 20px 60px;
+            }
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            .navbar ul {
+                gap: 1rem;
+            }
+            .navbar a {
+                font-size: 0.8rem;
+            }
+            .hero {
+                padding: 28px 24px;
+                flex-direction: column-reverse;
+                text-align: center;
+            }
+            .hero-tagline {
+                border-left: none;
+                padding-left: 0;
+                text-align: center;
+            }
+            .hero-desc {
+                max-width: 100%;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .contact-icons {
+                justify-content: center;
+            }
+            .grid-bento {
+                grid-template-columns: 1fr;
+                gap: 22px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            .glass-card {
+                border-radius: 24px;
+            }
+        }
+
+        /* 平滑聚焦效果 + 可访问性 */
+        a:focus-visible, button:focus-visible {
+            outline: 2px solid var(--accent-primary);
+            outline-offset: 4px;
+            border-radius: 12px;
+        }
+        /* 减少动画偏好 */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <ul>
+        <li><a href="#home">✨ 首页</a></li>
+        <li><a href="#education">📚 教育</a></li>
+        <li><a href="#experience">💼 经历</a></li>
+        <li><a href="#bio">🌟 关于</a></li>
+        <li><a href="form.html" target="_blank">📋 表单</a></li>
+    </ul>
+</nav>
+
+<main class="container">
+    <!-- Hero 区域:  Aurora 档案 -->
+    <section id="home" class="glass-card hero scroll-reveal">
+        <div class="hero-content">
+            <div class="hero-badge">✨ PORTFOLIO 2026</div>
+            <h1>Aurora</h1>
+            <div class="hero-tagline">「 光影之间 · 理性与感性并置 」</div>
+            <p class="hero-desc">基于现代CSS建构的数字档案，融合动态本托布局、玻璃拟态与微交互，呈现极简主义2.0的独特质感。</p>
+            <div class="contact-icons">
+                <a href="http://www.baidu.com" target="_blank" class="contact-icon">📞 12345673889</a>
+                <a href="mailto:wl2882@163.com" class="contact-icon">✉️ wl2882@163.com</a>
+                <a href="#" class="contact-icon">🎂 2006.03.16</a>
+                <a href="form.html" class="contact-icon">📄 专属表单</a>
+            </div>
+        </div>
+        <div class="hero-avatar">
+            <div class="avatar-glow">
+                <span>✨</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 动态网格区域: 教育背景 + 兴趣 -->
+    <div class="grid-bento">
+        <!-- 教育背景卡片 -->
+        <div class="glass-card info-card scroll-reveal" id="education">
+            <h3>📖 教育背景</h3>
+            <div class="timeline-item">
+                <div class="timeline-year">2012 — 2018</div>
+                <div class="timeline-title">🏫 Primary School · 班长</div>
+                <div class="timeline-desc">萌芽期 · 领导力与集体意识</div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-year">2018 — 2024</div>
+                <div class="timeline-title">🎓 Senior High School · 班长</div>
+                <div class="timeline-desc">学术奠基 + 团队管理，多次获得优秀干部称号</div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-year">2024 — 至今</div>
+                <div class="timeline-title">🏛️ University · 探索者</div>
+                <div class="timeline-desc">跨学科融合，专注前端美学与交互叙事</div>
+            </div>
+        </div>
+
+        <!-- 兴趣与特长卡片 (玻璃+悬停光影动画) -->
+        <div class="glass-card info-card scroll-reveal">
+            <h3>⚡ 兴趣频谱</h3>
+            <div class="interest-tags">
+                <span class="interest-tag">⛸️ 花样滑冰</span>
+                <span class="interest-tag">🏸 羽毛球</span>
+                <span class="interest-tag">🎹 钢琴 · 即兴创作</span>
+                <span class="interest-tag">🎨 数字设计</span>
+                <span class="interest-tag">✨ 动态排版</span>
+                <span class="interest-tag">🧩 玻璃拟态美学</span>
+            </div>
+            <p style="margin-top: 24px; color: var(--text-dim); font-size: 0.9rem;">「滑冰的轨迹与代码的弧线，同样优雅」</p>
+        </div>
+    </div>
+
+    <!-- 工作经验 + 项目沉淀 -->
+    <div class="grid-bento">
+        <div class="glass-card exp-card scroll-reveal" id="experience">
+            <h3>💻 工作经历</h3>
+            <div class="exp-item">
+                <div class="exp-title">◉ 前端设计实践 · 个人项目迭代</div>
+                <div class="exp-desc">独立完成本档案站点的CSS架构设计，采用grid+flex混合布局，贯彻响应式与微光玻璃体系。</div>
+            </div>
+            <div class="exp-item">
+                <div class="exp-title">◉ 创意实验室 · 动态交互探索</div>
+                <div class="exp-desc">基于CSS滚动驱动动画与交互动效，提升用户体验，践行极简主义2.0。</div>
+            </div>
+            <div class="exp-item">
+                <div class="exp-title">◉ 跨团队协同 (班长经历 -> 项目协调)</div>
+                <div class="exp-desc">管理活动策划，协同组员产出优质内容，组织力与责任感贯穿始终。</div>
+            </div>
+        </div>
+
+        <!-- 补充 自我/数字足迹 -->
+        <div class="glass-card info-card scroll-reveal">
+            <h3>🎯 核心特质</h3>
+            <div class="interest-tags" style="margin-top: 8px;">
+                <span class="interest-tag">🔹 细节驱动</span>
+                <span class="interest-tag">🔹 跨领域适应</span>
+                <span class="interest-tag">🔹 视觉敏锐度</span>
+                <span class="interest-tag">🔹 叙事思维</span>
+            </div>
+            <p style="margin-top: 28px; font-size: 0.9rem; border-top: 1px dashed var(--glass-border); padding-top: 18px;">
+                🧠 信奉“设计的本质是沟通”，擅长将抽象概念转化为清晰、有温度的界面体验。
+            </p>
+        </div>
+    </div>
+
+    <!-- 自我介绍区域 (带滚动出现动效) -->
+    <div id="bio" class="glass-card bio-section scroll-reveal">
+        <h3 style="font-size: 1.9rem; margin-bottom: 0.8rem;">🌊 自述 · 对流层之上的独白</h3>
+        <div class="bio-text">
+            “从滑冰场到键盘之间，从琴键的律动到代码的节奏——我一直相信，技术的背后是感知的精度。<br>
+            热情地构建，理性地审美。此页面不仅仅是一份简历，更是一场关于玻璃光泽、动态留白和光影序列的微型实验。<br>
+            持续学习，拥抱未知，让每一次交互都暗含诗意的回响。”
+        </div>
+        <div class="signature">—— Aurora / 设计与代码的织梦者</div>
+    </div>
+    <footer class="footer">
+        <p>© 2026 Aurora · 响应式玻璃态档案 | 纯CSS驱动 | 暗光美学 2.0</p>
+        <p style="margin-top: 10px;">📡 本页面融合 Bento 网格、滚动视差入场、毛玻璃及微光边缘，献给追求细节的探索者。</p>
+    </footer>
+</main>
+
+<script>
+    (function() {
+        // 滚动触发动效 (轻量 IntersectionObserver)
+        const revealElements = document.querySelectorAll('.scroll-reveal');
+        if (revealElements.length) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('revealed');
+                        observer.unobserve(entry.target); // 仅触发一次
+                    }
+                });
+            }, { threshold: 0.2, rootMargin: "0px 0px -40px 0px" });
+            revealElements.forEach(el => observer.observe(el));
+        }
+
+        // 平滑导航 (可选, 提升锚点跳转体验)
+        document.querySelectorAll('.navbar a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const targetId = this.getAttribute('href');
+                if (targetId === "#") return;
+                const targetElem = document.querySelector(targetId);
+                if (targetElem) {
+                    e.preventDefault();
+                    targetElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    })();
+</script>
+</body>
+</html>
